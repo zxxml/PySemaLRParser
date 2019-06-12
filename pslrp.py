@@ -12,6 +12,10 @@ class Production:
         self.func = func
         self.lr_next = None
         self.lr_items = None
+        # all symbols in the production
+        self.uni_syms = list(set(syms))
+        # internal variables
+        self._add_count = 0
 
     def __len__(self):
         return len(self.syms)
@@ -211,15 +215,25 @@ class LRItem:
     def name(self, name):
         self.prod.name = name
 
+    @property
+    def uni_syms(self):
+        return self.prod.uni_syms
+
+    @uni_syms.setter
+    def uni_syms(self, uni_syms):
+        self.prod.uni_syms = uni_syms
+
 
 class SLRTable:
-    def __init__(self):
+    def __init__(self, grammar):
+        self.grammar = grammar
         self.actiondict = None
         self.gotodict = None
         self.prodlist = None
         # incomplete tables
         self.actioncache = defaultdict(dict)
         self.gotocache = defaultdict(dict)
+        self.closcache = defaultdict(int)
         # internal variables
         self._add_count = 0
 
@@ -245,7 +259,7 @@ class SLRTable:
         if goto is not None: return goto
         # s is {} if x not in gotocache
         # do remember the default is {}
-        s, gs = self.gotocache.get(x), []
+        s, gs = self.gotocache[x], []
         # we have the state
         # and all the lr_next
         for item in state:
@@ -261,15 +275,31 @@ class SLRTable:
                     s = t
                     gs.append(n)
         goto = s.get('$end')
-        if goto is not None and gs:
+        if goto is None and gs:
             goto = self.lr0_closure(gs)
-        elif goto is not None:
+        elif goto is None:
             s['$end'] = goto if gs else gs
         self.gotocache[(id(state), x)] = goto
         return goto
 
     def lr0_items(self):
-        pass
+        closure = [self.lr0_closure([self.grammar.prodlist[0].lr_next])]
+        for i, c in enumerate(closure): self.closcache[id(c)] = i
+        index = 0  # must use while
+        while index < len(closure):
+            c, index = closure[index], index + 1
+            # get all the symbols in every prods of c
+            syms = set([s for y in c for s in y.uni_syms])
+            print(syms)
+            for s in syms:
+                goto = self.lr0_goto(c, s)
+                print(1111, s, ' goto ', goto)
+                if s == 'S': return
+                if goto is not None:
+                    if id(goto) not in self.closcache:
+                        self.closcache[id(goto)] = len(closure)
+                        closure.append(goto)
+        return closure
 
 
 if __name__ == '__main__':
@@ -279,13 +309,22 @@ if __name__ == '__main__':
     g.add_prod('S', [])
     g.set_start()
     for e in g.prodlist: print(e)
-    print(g.proddict)
-    print(g.nontdict)
-    print(g.termdict)
-    print(g.first_set())
-    print(g.follow_set())
-    print(g.start)
+    print('-' * 40)
+    g.first_set()
+    g.follow_set()
+    # print(g.proddict)
+    # print(g.nontdict)
+    # print(g.termdict)
+    # print(g.first_set())
+    # print(g.follow_set())
+    # print(g.start)
     g.build_lr_items()
-    for each in g.prodlist:
-        for item in each.lr_items:
-            print(item, '#', item.lr_before, '#', item.lr_after, '#', item.lr_next)
+    # for each in g.prodlist:
+    #     print('lr_next:', each.lr_next)
+    #     for item in each.lr_items:
+    #         print(item, '#', item.lr_before, '#', item.lr_after, '#', item.lr_next)
+    t = SLRTable(g)
+    for each in t.lr0_items():
+        for x in each:
+            print(x, end=' ')
+        print()

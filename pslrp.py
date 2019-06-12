@@ -218,16 +218,16 @@ class SLRTable:
         self.gotodict = None
         self.prodlist = None
         # incomplete tables
-        self.actioncache = {}
-        self.gotocache = {}
+        self.actioncache = defaultdict(dict)
+        self.gotocache = defaultdict(dict)
         # internal variables
         self._add_count = 0
 
-    def lr0_closure(self, state_i):
+    def lr0_closure(self, state):
         self._add_count += 1
         # state_i means Ii
         # a set of lr items
-        closure = state_i[:]
+        closure = state[:]
         been_changed = True
         while been_changed:
             been_changed = False
@@ -239,32 +239,37 @@ class SLRTable:
                         a._add_count = self._add_count
         return closure
 
-    def lr0_goto(self, state_i, x):
-        goto = self.gotocache.get((id(state_i), x))
+    def lr0_goto(self, state, x):
+        # if there is goto cached, just return it
+        goto = self.gotocache.get((id(state), x))
         if goto is not None: return goto
-        s = self.gotocache.get(x)
-        if s is None:
-            self.gotocache[x] = {}
-            s = self.gotocache[x]
-        goto_set = []
-        for item in state_i:
+        # s is {} if x not in gotocache
+        # do remember the default is {}
+        s, gs = self.gotocache.get(x), []
+        # we have the state
+        # and all the lr_next
+        for item in state:
             n = item.lr_next
-            if n and n.lr_before == x:
-                s1 = s.get(id(n))
-                if not s1:
-                    s[id(n)] = {}
-                    s1 = s[id(n)]
-                goto_set.append(n)
-                s = s1
-        g = s.get('$end')
-        if g is None:
-            if goto_set:
-                g = self.lr0_closure(goto_set)
-                s['$end'] = g
-            else:
-                s['$end'] = g
-        self.gotocache[(id(state_i), x)] = g
-        return g
+            if n is not None:
+                # make sure x is vn
+                # so we got a goto
+                if n.lr_before == x:
+                    t = s.get(id(n))
+                    if t is None:
+                        s[id(n)] = {}
+                        t = s[id(n)]
+                    s = t
+                    gs.append(n)
+        goto = s.get('$end')
+        if goto is not None and gs:
+            goto = self.lr0_closure(gs)
+        elif goto is not None:
+            s['$end'] = goto if gs else gs
+        self.gotocache[(id(state), x)] = goto
+        return goto
+
+    def lr0_items(self):
+        pass
 
 
 if __name__ == '__main__':

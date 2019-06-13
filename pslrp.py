@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 from collections import defaultdict
 from contextlib import suppress
+from typing import Iterable
 
 
 class Production:
@@ -179,7 +180,7 @@ class Grammar:
 
 
 class LRItem:
-    def __init__(self, prod, lr_index):
+    def __init__(self, prod: Production, lr_index):
         self.prod = prod
         self.lr_index = lr_index
         syms = list(prod.syms)
@@ -230,7 +231,7 @@ class LRItem:
         return len(self) == self.lr_index + 1
 
 
-def dumps_items(items):
+def dumps_items(items: Iterable[LRItem]):
     # it can be also used to dumps
     # goto and closure(just items)
     if items is None: return None
@@ -238,13 +239,13 @@ def dumps_items(items):
     return '\040'.join(string)
 
 
-def unique_symbols(items, reverse=False):
+def unique_symbols(items: Iterable[LRItem], reverse=False):
     syms = [s for y in items for s in y.uni_syms]
     return tuple(sorted(set(syms), reverse=reverse))
 
 
 class SLRTable:
-    def __init__(self, grammar):
+    def __init__(self, grammar: Grammar):
         self.grammar = grammar
         self.actiondict = {}
         self.gotodict = {}
@@ -328,6 +329,8 @@ class SLRTable:
         for i, state in enumerate(self.lr0_items()):
             # actiondict[s] = <index>
             # actionprod[s] = <prod>
+            # for reduce or accept, <index> is pos
+            # for shift, <index> is negetive or zero
             actiondict = {}
             actionprod = {}
             gotodict = {}
@@ -375,6 +378,30 @@ class SLRTable:
                     gotodict[n] = c
             self.actiondict[i] = actiondict
             self.gotodict[i] = gotodict
+
+
+class LRParser:
+    def __init__(self, table: SLRTable):
+        self.table = table
+        self.statestack = None
+        self.symbolstack = None
+
+    @property
+    def actiondict(self):
+        return self.table.actiondict
+
+    @property
+    def gotodict(self):
+        return self.table.gotodict
+
+    def restart(self):
+        self.statestack = [0]
+        self.symbolstack = ['$end']
+
+    def parse(self, tokens):
+        self.restart()
+        while True:
+            pass
 
 
 if __name__ == '__main__':

@@ -2,7 +2,6 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="5543447c-eb58-4e3e-a6e4-b6aa6d7a163a" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pslrp.py" beforeDir="false" afterPath="$PROJECT_DIR$/pslrp.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -16,8 +15,8 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/pslrp.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="333">
-              <caret line="350" column="41" selection-start-line="350" selection-start-column="41" selection-end-line="350" selection-end-column="41" />
+            <state relative-caret-position="493">
+              <caret line="382" selection-start-line="382" selection-end-line="382" />
               <folding>
                 <element signature="e#47#82#0" expanded="true" />
               </folding>
@@ -170,12 +169,12 @@
       <updated>1560146371976</updated>
       <workItem from="1560146375310" duration="31083000" />
       <workItem from="1560344539511" duration="9333000" />
-      <workItem from="1560396761245" duration="7562000" />
+      <workItem from="1560396761245" duration="8879000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="47978000" />
+    <option name="totallyTimeSpent" value="49295000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="-8" y="-8" width="1936" height="1096" extended-state="6" />
@@ -235,8 +234,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/pslrp.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="333">
-          <caret line="350" column="41" selection-start-line="350" selection-start-column="41" selection-end-line="350" selection-end-column="41" />
+        <state relative-caret-position="493">
+          <caret line="382" selection-start-line="382" selection-end-line="382" />
           <folding>
             <element signature="e#47#82#0" expanded="true" />
           </folding>

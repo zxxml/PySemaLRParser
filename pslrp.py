@@ -404,33 +404,19 @@ class LRParser:
             pass
 
 
-if __name__ == '__main__':
+def test_main():
     g = Grammar(['a', 'b', 'c', 'd'])
     g.add_prod('S', ['a', 'S', 'b'])
     g.add_prod('S', ['b', 'c', 'd'])
-    # g.add_prod('S', [])
     g.set_start()
-    # for e in g.prodlist: print(e)
-    # print('-' * 40)
     g.first_set()
     g.follow_set()
-    # print(g.proddict)
-    # print(g.nontdict)
-    # print(g.termdict)
-    # print(g.first_set())
-    # print(g.follow_set())
-    # print(g.start)
     g.build_lr_items()
-    # for each in g.prodlist:
-    #     print('lr_next:', each.lr_next)
-    #     for item in each.lr_items:
-    #         print(item, '#', item.lr_before, '#', item.lr_after, '#', item.lr_next)
     t = SLRTable(g)
-    # for each in t.lr0_items():
-    #     for x in each:
-    #         print(x, end=' ')
-    #     print()
-    # print('-' * 40)
     t.slr_table()
     print(t.actiondict)
     print(t.gotodict)
+
+
+if __name__ == '__main__':
+    test_main()

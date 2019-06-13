@@ -38,6 +38,14 @@ class GramError(Exception):
         super().__init__(message)
 
 
+def is_legal_symbol(sym):
+    # all syms are legal except below
+    if sym == '<empty>': return False
+    if sym == '$end': return False
+    if sym == '.': return False
+    return True
+
+
 class Grammar:
     def __init__(self, terms):
         self.start = None
@@ -59,16 +67,19 @@ class Grammar:
         if name in self.termdict:
             text = 'Illegal nonterm: %s'
             raise GramError(text % name)
-        if name == 'error':
+        if not is_legal_symbol(name):
             text = 'Illegal nonterm: %s'
             raise GramError(text % name)
         for i, each in enumerate(syms):
-            if not each.isidentifier():
+            if not is_legal_symbol(each):
                 text = 'Illegal symbol: %s'
                 raise GramError(text % each)
         # from now, everything is valid
         # use all info to create a prod
         i = len(self.prodlist)
+        # notify the nontdict
+        # to create the default
+        _ = self.nontdict[name]
         for each in syms:
             if each in self.termdict:
                 self.termdict[each].append(i)
@@ -468,21 +479,3 @@ class LRParser:
             else:
                 message = 'Parsing error.'
                 raise GramError(message)
-
-
-def test_main():
-    g = Grammar(['a', 'b', 'c', 'd'])
-    g.add_prod('S', ['a', 'S', 'b'])
-    g.add_prod('S', ['b', 'c', 'd'])
-    g.set_start()
-    g.first_set()
-    g.follow_set()
-    g.build_lr_items()
-    t = SLRTable(g)
-    t.slr_table()
-    p = LRParser(t)
-    p.parse([LRToken('a'), LRToken('b'), LRToken('c'), LRToken('d'), LRToken('b'), LRToken('$end')])
-
-
-if __name__ == '__main__':
-    test_main()

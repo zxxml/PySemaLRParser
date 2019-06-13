@@ -224,6 +224,24 @@ class LRItem:
         self.prod.uni_syms = uni_syms
 
 
+def dumps_items(items):
+    # it can be also used to dumps
+    # goto and closure(just items)
+    if items is None: return None
+    string = [str(i) for i in items]
+    return '\040'.join(string)
+
+
+def unique_symbols(items, reverse=False):
+    syms = [s for y in items for s in y.uni_syms]
+    return tuple(sorted(set(syms), reverse=reverse))
+
+
+def compare_syms(xs, ys):
+    # awesome python
+    return xs >= ys
+
+
 class SLRTable:
     def __init__(self, grammar):
         self.grammar = grammar
@@ -265,8 +283,8 @@ class SLRTable:
         for item in state:
             n = item.lr_next
             if n is not None:
-                # make sure x is vn
-                # so we got a goto
+                # x can be vn or vt
+                # and we got a goto
                 if n.lr_before == x:
                     t = s.get(id(n))
                     if t is None:
@@ -275,10 +293,9 @@ class SLRTable:
                     s = t
                     gs.append(n)
         goto = s.get('$end')
-        if goto is None and gs:
-            goto = self.lr0_closure(gs)
-        elif goto is None:
-            s['$end'] = goto if gs else gs
+        if goto is None:
+            if gs: goto = self.lr0_closure(gs)
+            s['$end'] = goto if gs else []
         self.gotocache[(id(state), x)] = goto
         return goto
 
@@ -289,16 +306,12 @@ class SLRTable:
         while index < len(closure):
             c, index = closure[index], index + 1
             # get all the symbols in every prods of c
-            syms = set([s for y in c for s in y.uni_syms])
-            print(syms)
+            syms = unique_symbols(c, reverse=False)
             for s in syms:
                 goto = self.lr0_goto(c, s)
-                print(1111, s, ' goto ', goto)
-                if s == 'S': return
-                if goto is not None:
-                    if id(goto) not in self.closcache:
-                        self.closcache[id(goto)] = len(closure)
-                        closure.append(goto)
+                if goto and id(goto) not in self.closcache:
+                    self.closcache[id(goto)] = len(closure)
+                    closure.append(goto)
         return closure
 
 

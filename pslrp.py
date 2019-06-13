@@ -25,6 +25,11 @@ class Production:
         syms = '\40'.join(self.syms)
         return '%s -> %s' % (self.name, syms)
 
+    @property
+    def f(self):
+        if self.func is not None: return self.func
+        return lambda x, y, z: print(x, y, z)
+
 
 class GramError(Exception):
     def __init__(self, message):
@@ -380,11 +385,24 @@ class SLRTable:
             self.gotodict[i] = gotodict
 
 
+class LRSymbol:
+    def __init__(self, name, value=None):
+        self.name = name
+        self.value = value
+
+    def __str__(self):
+        return self.name
+
+
 class LRParser:
     def __init__(self, table: SLRTable):
         self.table = table
         self.statestack = None
         self.symbolstack = None
+
+    @property
+    def prodlist(self):
+        return self.table.prodlist
 
     @property
     def actiondict(self):
@@ -395,13 +413,63 @@ class LRParser:
         return self.table.gotodict
 
     def restart(self):
+        sym = LRSymbol('$end')
         self.statestack = [0]
-        self.symbolstack = ['$end']
+        self.symbolstack = [sym]
 
     def parse(self, tokens):
         self.restart()
+        # reassign for convenience
+        prodlist = self.prodlist
+        actiondict = self.actiondict
+        gotodict = self.gotodict
+        statestack = self.statestack
+        symbolstack = self.symbolstack
         while True:
-            pass
+            next_sym = tokens[0]
+            state = statestack[-1]
+            symbol = symbolstack[-1]
+            action = actiondict[state]
+            print(actiondict, state, next_sym.name)
+            next = action.get(next_sym.name)
+
+            if next is not None:
+                if next > 0:
+                    statestack.append(next)
+                    next_sym = tokens.pop(0)
+                    symbolstack.append(next_sym)
+                elif next < 0:
+                    p = prodlist[-next]
+                    if len(p):
+                        args = symbolstack[-len(p):]
+                        # doing reduce from now
+                        del symbolstack[-len(p):]
+                        del statestack[-len(p):]
+                        # doing actions while reducing
+                        p.f(symbol, args, symbolstack)
+                        symbolstack.append(symbol)
+                        # after applying the rule
+                        # generate the next state
+                        r_state = statestack[-1]
+                        r_goto = gotodict[r_state]
+                        next_state = r_goto[p.name]
+                        statestack.append(next_state)
+                    else:
+                        p.f(symbol, None, symbolstack)
+                        symbolstack.append(symbol)
+                        # after applying the rule
+                        # generate the next state
+                        r_state = statestack[-1]
+                        r_goto = gotodict[r_state]
+                        next_state = r_goto[p.name]
+                        statestack.append(next_state)
+                # for readability
+                elif next == 0:
+                    symbol = symbolstack[-1]
+                    return symbol.value
+            else:
+                message = 'Parsing error.'
+                raise GramError(message)
 
 
 def test_main():
@@ -414,8 +482,8 @@ def test_main():
     g.build_lr_items()
     t = SLRTable(g)
     t.slr_table()
-    print(t.actiondict)
-    print(t.gotodict)
+    p = LRParser(t)
+    p.parse([LRSymbol('a'), LRSymbol('b'), LRSymbol('c'), LRSymbol('d'), LRSymbol('b'), LRSymbol('$end')])
 
 
 if __name__ == '__main__':

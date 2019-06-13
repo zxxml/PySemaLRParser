@@ -385,7 +385,7 @@ class SLRTable:
             self.gotodict[i] = gotodict
 
 
-class LRSymbol:
+class LRToken:
     def __init__(self, name, value=None):
         self.name = name
         self.value = value
@@ -413,7 +413,7 @@ class LRParser:
         return self.table.gotodict
 
     def restart(self):
-        sym = LRSymbol('$end')
+        sym = LRToken('$end')
         self.statestack = [0]
         self.symbolstack = [sym]
 
@@ -430,9 +430,7 @@ class LRParser:
             state = statestack[-1]
             symbol = symbolstack[-1]
             action = actiondict[state]
-            print(actiondict, state, next_sym.name)
             next = action.get(next_sym.name)
-
             if next is not None:
                 if next > 0:
                     statestack.append(next)
@@ -483,7 +481,7 @@ def test_main():
     t = SLRTable(g)
     t.slr_table()
     p = LRParser(t)
-    p.parse([LRSymbol('a'), LRSymbol('b'), LRSymbol('c'), LRSymbol('d'), LRSymbol('b'), LRSymbol('$end')])
+    p.parse([LRToken('a'), LRToken('b'), LRToken('c'), LRToken('d'), LRToken('b'), LRToken('$end')])
 
 
 if __name__ == '__main__':

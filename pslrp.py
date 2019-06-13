@@ -192,7 +192,7 @@ class LRItem:
         self._add_count = 0
 
     def __len__(self):
-        return len(self.prod)
+        return len(self.syms)
 
     def __str__(self):
         syms = '\40'.join(self.syms)
@@ -223,6 +223,12 @@ class LRItem:
     def uni_syms(self, uni_syms):
         self.prod.uni_syms = uni_syms
 
+    @property
+    def can_reduce(self):
+        # whether this item can be reduced
+        # or acc if the name is the starter
+        return len(self) == self.lr_index + 1
+
 
 def dumps_items(items):
     # it can be also used to dumps
@@ -237,23 +243,25 @@ def unique_symbols(items, reverse=False):
     return tuple(sorted(set(syms), reverse=reverse))
 
 
-def compare_syms(xs, ys):
-    # awesome python
-    return xs >= ys
-
-
 class SLRTable:
     def __init__(self, grammar):
         self.grammar = grammar
-        self.actiondict = None
-        self.gotodict = None
-        self.prodlist = None
+        self.actiondict = {}
+        self.gotodict = {}
         # incomplete tables
         self.actioncache = defaultdict(dict)
         self.gotocache = defaultdict(dict)
         self.closcache = defaultdict(int)
         # internal variables
         self._add_count = 0
+
+    @property
+    def prodlist(self):
+        return self.grammar.prodlist
+
+    @prodlist.setter
+    def prodlist(self, v):
+        self.grammar.prodlist = v
 
     def lr0_closure(self, state):
         self._add_count += 1
@@ -303,6 +311,8 @@ class SLRTable:
         closure = [self.lr0_closure([self.grammar.prodlist[0].lr_next])]
         for i, c in enumerate(closure): self.closcache[id(c)] = i
         index = 0  # must use while
+        # traverse all unvisited states
+        # and generate their goto states
         while index < len(closure):
             c, index = closure[index], index + 1
             # get all the symbols in every prods of c
@@ -314,15 +324,67 @@ class SLRTable:
                     closure.append(goto)
         return closure
 
+    def slr_table(self):
+        for i, state in enumerate(self.lr0_items()):
+            # actiondict[s] = <index>
+            # actionprod[s] = <prod>
+            actiondict = {}
+            actionprod = {}
+            gotodict = {}
+            # generate the action table
+            # ignore goto in this loop
+            for item in state:
+                if item.can_reduce:
+                    if item.name == "S'":
+                        actiondict['$end'] = 0
+                        actionprod['$end'] = item
+                    else:
+                        # the lookaheads of slr is the follow
+                        for a in self.grammar.follow[item.name]:
+                            if actiondict.get(a) is not None:
+                                message = 'Conflict reduce and %s.'
+                                raise GramError(message % 'shift')
+                            # reverse index(-1, -2, ...)
+                            actiondict[a] = -item.index
+                            actionprod[a] = item
+                else:
+                    index = item.lr_index
+                    # e.g. S -> a.Sb, s = S
+                    s = item.syms[index + 1]
+                    if s in self.grammar.termdict:
+                        # now we have a shift item
+                        goto = self.lr0_goto(state, s)
+                        # get the index of goto in all states
+                        c = self.closcache.get(id(goto), -1)
+                        if c >= 0:
+                            actiondict[s] = c
+                            actionprod[s] = item
+            # already finished the action
+            # now generate the goto table
+            nontdict = defaultdict()
+            for item in state:
+                for s in item.uni_syms:
+                    if s in self.grammar.nontdict:
+                        nontdict[s] = None
+            for n in nontdict:
+                # do the same thing in shift
+                goto = self.lr0_goto(state, n)
+                c = self.closcache.get(id(goto), -1)
+                if c >= 0:
+                    # but no more prod
+                    gotodict[n] = c
+            self.actiondict[i] = actiondict
+            self.gotodict[i] = gotodict
+
 
 if __name__ == '__main__':
     g = Grammar(['a', 'b', 'c', 'd'])
     g.add_prod('S', ['a', 'S', 'b'])
     g.add_prod('S', ['b', 'c', 'd'])
-    g.add_prod('S', [])
+    # g.add_prod('S', [])
     g.set_start()
-    for e in g.prodlist: print(e)
-    print('-' * 40)
+    # for e in g.prodlist: print(e)
+    # print('-' * 40)
     g.first_set()
     g.follow_set()
     # print(g.proddict)
@@ -337,7 +399,11 @@ if __name__ == '__main__':
     #     for item in each.lr_items:
     #         print(item, '#', item.lr_before, '#', item.lr_after, '#', item.lr_next)
     t = SLRTable(g)
-    for each in t.lr0_items():
-        for x in each:
-            print(x, end=' ')
-        print()
+    # for each in t.lr0_items():
+    #     for x in each:
+    #         print(x, end=' ')
+    #     print()
+    # print('-' * 40)
+    t.slr_table()
+    print(t.actiondict)
+    print(t.gotodict)

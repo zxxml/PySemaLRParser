@@ -30,9 +30,16 @@ class Production:
         if self.func is not None: return self.func
         return lambda x, y, z: print(x, y, z)
 
+    @property
+    def functions(self):
+        # used by the LL(1) parser
+        if self.func: return self.func
+        defaultfunc = lambda: lambda: None
+        return defaultdict(defaultfunc)
+
 
 class GramError(Exception):
-    def __init__(self, message):
+    def __init__(self, message=None):
         self.message = message
         self.args = (message,)
         super().__init__(message)

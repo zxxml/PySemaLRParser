@@ -1,8 +1,8 @@
 #!/usr/bin/env/python3
 # -*- coding: utf-8 -*-
-from typing import Iterable
+from typing import Dict, Iterable
 
-from pslrp import GramError, Grammar
+from pslrp import GramError, Grammar, Production
 
 
 class LLToken:
@@ -20,10 +20,20 @@ def dumps_tokens(tokens: Iterable[LLToken]):
     return '\040'.join(string)
 
 
+def get_empty_prod(proddict: Dict[str, Production], name):
+    for p in proddict[name]:
+        if not p.syms: return p
+    return None
+
+
 class LLParser:
     def __init__(self, grammar: Grammar):
         self.grammar = grammar
         self.funcdict = {}
+        for t in self.termdict:
+            self.term_func(t)
+        for n in self.nontdict:
+            self.nont_func(n)
 
     @property
     def start(self):
@@ -38,28 +48,20 @@ class LLParser:
         return self.grammar.nontdict
 
     @property
-    def prodlist(self):
-        return self.grammar.prodlist
-
-    @property
     def proddict(self):
         return self.grammar.proddict
 
-    @property
-    def first(self):
-        return self.grammar.first
+    def get_first(self, syms):
+        return self.grammar.get_first(syms)
 
     @property
     def follow(self):
         return self.grammar.follow
 
-    def get_first(self, syms):
-        return self.grammar.get_first(syms)
-
     def term_func(self, sym):
         if sym in self.funcdict:
             return self.funcdict[sym]
-        def _func(tokens):
+        def _func(tokens, old):
             if not tokens:
                 message = 'Parsing error, perhaps %s.'
                 more_hint = 'missing the end symbol'
@@ -74,7 +76,8 @@ class LLParser:
     def nont_func(self, sym):
         if sym in self.funcdict:
             return self.funcdict[sym]
-        def _func(tokens):
+        def _func(tokens, old):
+            new = old.copy()
             if not tokens:
                 message = 'Parsing error, perhaps %s.'
                 more_hint = 'missing the end symbol'
@@ -82,41 +85,25 @@ class LLParser:
             for p in self.proddict[sym]:
                 first = self.get_first(p.syms)
                 if tokens[0].name in first:
-                    for s in p.syms:
+                    for i, s in enumerate(p.syms):
+                        p.functions[i](new, old)
                         f = self.funcdict[s]
-                        tokens = f(tokens)
+                        tokens = f(tokens, new)
+                    p.functions[-1](new, old)
                     return tokens
             follow = self.follow[sym]
             if tokens[0].name in follow:
+                p = get_empty_prod(self.proddict, sym)
+                message = 'Conflict error on parsing.'
+                if p is None: raise GramError(message)
+                p.functions[-1](new, old)
                 return tokens
             message = 'Parsing error.'
             raise GramError(message)
         self.funcdict[sym] = _func
         return self.funcdict[sym]
 
-    def restart(self):
-        for t in self.termdict:
-            self.term_func(t)
-        for n in self.nontdict:
-            self.nont_func(n)
-        return self.funcdict
-
-    def parse(self, tokens):
+    def parse(self, tokens, result=None):
+        if result is None: result = {}
         func = self.funcdict[self.start]
-        return func(tokens)
-
-
-if __name__ == '__main__':
-    g = Grammar(['a', 'b', 'c'])
-    g.add_prod('S', ['a', 'S'])
-    g.add_prod('S', ['b', 'S'])
-    g.add_prod('S', ['c', 'S'])
-    g.add_prod('S', [])
-    g.set_start()
-    g.first_set()
-    g.follow_set()
-    p = LLParser(g)
-    s = ['a', 'b', 'c', '$end']
-    s = [LLToken(x) for x in s]
-    p.restart()
-    p.parse(s)
+        return func(tokens, result)

@@ -212,6 +212,7 @@ class LRItem:
         self.lr_next = None
         self.lr_after = None
         self.lr_before = None
+        self.lr_aheads = None
         # internal variables
         self._add_count = 0
 
@@ -267,7 +268,7 @@ def unique_symbols(items: Iterable[LRItem], reverse=False):
     return tuple(sorted(set(syms), reverse=reverse))
 
 
-class SLRTable:
+class LRTable:
     def __init__(self, grammar: Grammar):
         self.grammar = grammar
         self.actiondict = {}
@@ -283,9 +284,8 @@ class SLRTable:
     def prodlist(self):
         return self.grammar.prodlist
 
-    @prodlist.setter
-    def prodlist(self, v):
-        self.grammar.prodlist = v
+    def get_first(self, syms):
+        return self.grammar.get_first(syms)
 
     def lr0_closure(self, state):
         self._add_count += 1
@@ -332,7 +332,7 @@ class SLRTable:
         return goto
 
     def lr0_items(self):
-        closure = [self.lr0_closure([self.grammar.prodlist[0].lr_next])]
+        closure = [self.lr0_closure([self.prodlist[0].lr_next])]
         for i, c in enumerate(closure): self.closcache[id(c)] = i
         index = 0  # must use while
         # traverse all unvisited states
@@ -413,7 +413,7 @@ class LRToken:
 
 
 class LRParser:
-    def __init__(self, table: SLRTable):
+    def __init__(self, table: LRTable):
         self.table = table
         self.statestack = None
         self.symbolstack = None

@@ -45,3 +45,44 @@ PSLRP 支持的文法满足以下条件：
 2. 然后创建一个全局字典，每个继承属性，对应字典中的一项
 
 如果希望使用传统方法，PSLRP 也允许直接操控符号栈，但不推荐这么做。
+
+## PSLLP
+
+PSLLP 是一个不知道有什么用处的带语义计算的 LL(1) 递归下降子程序生成器。
+
+### PSLLP 支持的文法
+
+除必须是 LL(1) 文法外，其他条件与 PSLRP 相同。
+
+请注意：在构造生成器时并不会检查是否符合条件，只有在推导时才会发现错误。
+
+### PSLLP 的使用方法
+
+除了无需生成 LR 项目以外，其余步骤与 PSLRP 类似。
+
+在 tests 目录下也有它的若干示例，可以参照它们。
+
+### PSLLP 如何处理语义计算
+
+PSLLP 在递归下降子程序内部维护属性栈，在调用其他子程序时传入自身的属性栈。
+
+比如说，对于产生式 N -> { B.len = N.len } B { N1.len = N.len + 1 } N1 { N.val = B.val + N1.val } 而言，它的三个语义动作被定义为三个函数，如下所示：
+
+```python
+def meet_n_bn_0(new, old):
+    print('meet_n_bn_0')
+    # N -> {<this>} B N
+    new['B.len'] = old['N.len']
+
+
+def meet_n_bn_1(new, old):
+    print('meet_n_bn_1')
+    # N -> B {<this>} N
+    new['N.len'] = old['N.len'] + 1
+
+
+def meet_n_bn_2(new, old):
+    print('meet_n_bn_2')
+    # N -> B N {<this>}
+    old['N.val'] = new['B.val'] + new['N.val']
+```

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 from collections import defaultdict
 
-from pslrp import Grammar, LRParser, LRTable, LRToken
+from pslrp import CLRTable, Grammar
 
 termlist = ['dot', '0', '1']
 namedict = defaultdict()
@@ -60,9 +60,11 @@ if __name__ == '__main__':
     g.first_set()
     g.follow_set()
     g.build_lr_items()
-    t = LRTable(g)
-    t.slr_table()
-    p = LRParser(t)
-    s = ['dot', '1', '0', '1', '$end']
-    s = [LRToken(each) for each in s]
-    print(p.parse(s))
+    t = CLRTable(g)
+    print(t.clr_items())
+    # t = SLRTable(g)
+    # t.slr_table()
+    # p = LRParser(t)
+    # s = ['dot', '1', '0', '1', '$end']
+    # s = [LRToken(each) for each in s]
+    # print(p.parse(s))

@@ -4,10 +4,10 @@
     <bookmark url="file://$PROJECT_DIR$/yacc.py" line="2257" />
     <bookmark url="file://$PROJECT_DIR$/yacc.py" line="2535" />
     <bookmark url="file://$PROJECT_DIR$/yacc.py" line="2511" />
+    <bookmark url="file://$PROJECT_DIR$/yacc.py" line="2140" />
   </component>
   <component name="ChangeListManager">
     <list default="true" id="5543447c-eb58-4e3e-a6e4-b6aa6d7a163a" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pslrp.py" beforeDir="false" afterPath="$PROJECT_DIR$/pslrp.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/tests/conv_slr.py" beforeDir="false" afterPath="$PROJECT_DIR$/tests/conv_slr.py" afterDir="false" />
     </list>
@@ -25,8 +25,8 @@
             <file pinned="false" current-in-tab="true">
               <entry file="file://$PROJECT_DIR$/yacc.py">
                 <provider selected="true" editor-type-id="text-editor">
-                  <state relative-caret-position="-4308">
-                    <caret line="2298" column="19" lean-forward="true" selection-start-line="2298" selection-start-column="19" selection-end-line="2298" selection-end-column="19" />
+                  <state relative-caret-position="-1307">
+                    <caret line="2140" column="29" lean-forward="true" selection-start-line="2140" selection-start-column="29" selection-end-line="2140" selection-end-column="29" />
                     <folding>
                       <element signature="e#3319#3328#0" expanded="true" />
                     </folding>
@@ -44,8 +44,8 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/pslrp.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="530">
-              <caret line="405" selection-start-line="405" selection-end-line="405" />
+            <state relative-caret-position="210">
+              <caret line="503" column="25" selection-start-line="503" selection-start-column="25" selection-end-line="503" selection-end-column="25" />
               <folding>
                 <element signature="e#47#82#0" expanded="true" />
               </folding>
@@ -56,8 +56,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/tests/conv_slr.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-374">
-              <caret line="2" selection-start-line="2" selection-end-line="2" />
+            <state relative-caret-position="297">
+              <caret line="63" column="23" selection-start-line="63" selection-start-column="23" selection-end-line="63" selection-end-column="23" />
               <folding>
                 <element signature="e#47#82#0" expanded="true" />
               </folding>
@@ -295,12 +295,12 @@
       <workItem from="1560146375310" duration="31083000" />
       <workItem from="1560344539511" duration="9333000" />
       <workItem from="1560396761245" duration="41844000" />
-      <workItem from="1560513060880" duration="5800000" />
+      <workItem from="1560513060880" duration="12293000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="88060000" />
+    <option name="totallyTimeSpent" value="94553000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="-8" y="-8" width="1936" height="1096" extended-state="6" />
@@ -311,7 +311,7 @@
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Find" order="1" weight="0.32942432" />
-      <window_info anchor="bottom" id="Run" order="2" weight="0.41476092" />
+      <window_info active="true" anchor="bottom" id="Run" order="2" visible="true" weight="0.41476092" />
       <window_info anchor="bottom" id="Debug" order="3" weight="0.4" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
@@ -338,7 +338,7 @@
     <SUITE FILE_PATH="coverage/PySemaLRParser$ll1.coverage" NAME="ll1 Coverage Results" MODIFIED="1560483216501" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/PySemaLRParser$plus_ll.coverage" NAME="plus_ll Coverage Results" MODIFIED="1560489261093" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/tests" />
     <SUITE FILE_PATH="coverage/PySemaLRParser$pslrp.coverage" NAME="pslrp Coverage Results" MODIFIED="1560433074547" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/PySemaLRParser$conv_slr.coverage" NAME="conv_slr Coverage Results" MODIFIED="1560522619286" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/tests" />
+    <SUITE FILE_PATH="coverage/PySemaLRParser$conv_slr.coverage" NAME="conv_slr Coverage Results" MODIFIED="1560563854668" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/tests" />
     <SUITE FILE_PATH="coverage/PySemaLRParser$answer.coverage" NAME="answer Coverage Results" MODIFIED="1560406197079" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/PySemaLRParser$calc_slr.coverage" NAME="calc_slr Coverage Results" MODIFIED="1560442946392" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/tests" />
     <SUITE FILE_PATH="coverage/PySemaLRParser$conv_ll.coverage" NAME="conv_ll Coverage Results" MODIFIED="1560497626100" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/tests" />
@@ -397,8 +397,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/yacc.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-4308">
-          <caret line="2298" column="19" lean-forward="true" selection-start-line="2298" selection-start-column="19" selection-end-line="2298" selection-end-column="19" />
+        <state relative-caret-position="-1307">
+          <caret line="2140" column="29" lean-forward="true" selection-start-line="2140" selection-start-column="29" selection-end-line="2140" selection-end-column="29" />
           <folding>
             <element signature="e#3319#3328#0" expanded="true" />
           </folding>
@@ -407,8 +407,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/tests/conv_slr.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-374">
-          <caret line="2" selection-start-line="2" selection-end-line="2" />
+        <state relative-caret-position="297">
+          <caret line="63" column="23" selection-start-line="63" selection-start-column="23" selection-end-line="63" selection-end-column="23" />
           <folding>
             <element signature="e#47#82#0" expanded="true" />
           </folding>
@@ -417,8 +417,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/pslrp.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="530">
-          <caret line="405" selection-start-line="405" selection-end-line="405" />
+        <state relative-caret-position="210">
+          <caret line="503" column="25" selection-start-line="503" selection-start-column="25" selection-end-line="503" selection-end-column="25" />
           <folding>
             <element signature="e#47#82#0" expanded="true" />
           </folding>

@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 from collections import defaultdict
 from contextlib import suppress
+from copy import deepcopy
 from typing import Iterable
 
 
@@ -222,7 +223,20 @@ class LRItem:
     def __str__(self):
         syms = '\40'.join(self.syms)
         if not self.syms: syms = '<empty>'
-        return '%s -> %s' % (self.name, syms)
+        prod = '%s -> %s' % (self.name, syms)
+        return '%s %s' % (prod, self.lr_aheads)
+
+    def __hash__(self):
+        aheads=self.lr_aheads or []
+        a=list(self.syms)+list(aheads)
+        return hash(tuple(a))
+
+    def __eq__(self, item):
+        a1=self.lr_aheads or tuple()
+        a2=item.lr_aheads or tuple()
+        a1=tuple(a1)
+        a2=tuple(a2)
+        return self.syms == item.syms and a1==a2
 
     @property
     def index(self):
@@ -287,6 +301,8 @@ class LRTable:
     def get_first(self, syms):
         return self.grammar.get_first(syms)
 
+
+class SLRTable(LRTable):
     def lr0_closure(self, state):
         self._add_count += 1
         # state_i means Ii
@@ -401,6 +417,92 @@ class LRTable:
                     gotodict[n] = c
             self.actiondict[i] = actiondict
             self.gotodict[i] = gotodict
+
+
+class CLRTable(LRTable):
+    def clr_closure(self, state: Iterable[LRItem]):
+        self._add_count += 1
+        closure = state[:]
+        been_changed = True
+        while been_changed:
+            been_changed = False
+            for c in closure:
+                print(5555,c,c.lr_after)
+                for a in c.lr_after:
+                    # if a._add_count != self._add_count:
+
+                        # copy it since there is no
+                        # lookaheads in origin items
+                        item = deepcopy(a.lr_next)
+                        # a._add_count = self._add_count
+                        syms = list(c.syms[c.lr_index + 2:])
+                        first = self.grammar.get_first(syms)
+                        if first[0] == '<empty>': first = c.lr_aheads
+                        item.lr_aheads = first
+                        print(4444,item,dumps_items(closure))
+                        if item not in closure:
+                            been_changed = True
+                            closure.append(item)
+        return tuple(closure)
+
+    def clr_goto(self, state, x):
+        print(x, '-' * 4)
+        goto = self.gotocache.get((state, x))
+        if goto is not None: return goto
+        s, gs = self.gotocache[x], []
+        for item in state:
+
+            n = item.lr_next
+            print(item, n)
+            if n is not None:
+                print(n.lr_before, x)
+                if n.lr_before == x:
+                    n = deepcopy(n)
+                    a = item.syms[item.lr_index + 2:]
+                    first = self.grammar.get_first(a)
+                    if first[0] == '<empty>': first = item.lr_aheads
+                    n.lr_aheads = first
+                    if n not in gs: gs.append(n)
+        print(111, dumps_items(gs),goto,gs)
+        if gs:print('gsgsgsgs')
+        goto = s.get('$end')
+        print(goto)
+        if not goto:
+
+            if gs:
+                goto = self.clr_closure(gs)
+                print(222, goto,gs)
+            s['$end'] = goto if gs else []
+        self.gotocache[(id(state), x)] = goto
+        print(dumps_items(goto))
+        return tuple(goto) if goto else None
+
+    def clr_items(self):
+        item = deepcopy(self.prodlist[0].lr_next)
+        item.lr_aheads = ['$end']
+        closure = [self.clr_closure([item])]
+        print(dumps_items(closure[0]))
+        print(dumps_items(self.clr_goto(closure[0], 'S')))
+        print(dumps_items(self.clr_goto(closure[0], 'dot')))
+        for i, c in enumerate(closure):
+            self.closcache[c] = i
+        index = 0
+        while index < len(closure):
+            c, index = closure[index], index + 1
+            syms = unique_symbols(c)
+            print(dumps_items(c), syms)
+            for s in syms:
+
+                goto = self.clr_goto(c, s)
+                print(s, 'goto', dumps_items(goto))
+                # print(dumps_items(goto), goto in self.closcache)
+                if goto and goto not in self.closcache:
+                    self.closcache[goto] = len(closure)
+                    closure.append(goto)
+        for each in closure:
+            print(dumps_items(each))
+        print(len(closure))
+        return closure
 
 
 class LRToken:

@@ -446,16 +446,16 @@ class CLRTable(LRTable):
         return tuple(closure)
 
     def clr_goto(self, state, x):
-        print(x, '-' * 4)
+        # print(x, '-' * 4)
         goto = self.gotocache.get((state, x))
         if goto is not None: return goto
         s, gs = self.gotocache[x], []
         for item in state:
 
             n = item.lr_next
-            print(item, n)
+            # print(item, n)
             if n is not None:
-                print(n.lr_before, x)
+                # print(n.lr_before, x)
                 if n.lr_before == x:
                     n = deepcopy(n)
                     # a = item.syms[item.lr_index + 2:]
@@ -464,7 +464,7 @@ class CLRTable(LRTable):
                     # n.lr_aheads = first
                     n.lr_aheads = item.lr_aheads
                     if n not in gs: gs.append(n)
-        print(111, dumps_items(gs), goto, gs)
+        # print(111, dumps_items(gs), goto, gs)
         # if gs: print('gsgsgsgs')
         # goto = s.get('$end')
         # print(dumps_items(goto))
@@ -477,7 +477,7 @@ class CLRTable(LRTable):
         #     s['$end'] = goto if gs else []
         goto = self.clr_closure(gs)
         self.gotocache[(id(state), x)] = goto
-        print(dumps_items(goto))
+        # print(dumps_items(goto))
         return tuple(goto) if goto else None
 
     def clr_items(self):

@@ -64,7 +64,7 @@ if __name__ == '__main__':
     g.build_lr_items()
     t = CLRTable(g)
     # print(t.clr_items())
-    print(t.clr_table())
+    t.clr_table()
     # print(t.actiondict)
     # print( t.gotodict)
     # t = SLRTable(g)

@@ -63,12 +63,13 @@ if __name__ == '__main__':
     g.follow_set()
     g.build_lr_items()
     t = CLRTable(g)
-    print(t.clr_items())
-    # print(t.clr_table())
-    # print(t.actiondict, t.gotodict)
+    # print(t.clr_items())
+    print(t.clr_table())
+    # print(t.actiondict)
+    # print( t.gotodict)
     # t = SLRTable(g)
     # t.slr_table()
-    # p = LRParser(t)
-    # s = ['dot', '1', '0', '1', '$end']
-    # s = [LRToken(each) for each in s]
-    # print(p.parse(s))
+    p = LRParser(t)
+    s = ['dot', '1', '0', '1', '$end']
+    s = [LRToken(each) for each in s]
+    print(p.parse(s))

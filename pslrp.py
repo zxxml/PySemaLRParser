@@ -484,28 +484,28 @@ class CLRTable(LRTable):
         item = deepcopy(self.prodlist[0].lr_next)
         item.lr_aheads = ['$end']
         closure = [self.clr_closure([item])]
-        print(dumps_items(closure[0]))
-        print(dumps_items(self.clr_goto(closure[0], 'S')))
-        print(dumps_items(self.clr_goto(closure[0], 'dot')))
+        # print(dumps_items(closure[0]))
+        # print(dumps_items(self.clr_goto(closure[0], 'S')))
+        # print(dumps_items(self.clr_goto(closure[0], 'dot')))
         for i, c in enumerate(closure):
             self.closcache[c] = i
         index = 0
         while index < len(closure):
-            print(len(closure))
+            # print(len(closure))
             c, index = closure[index], index + 1
             syms = unique_symbols(c)
-            print(dumps_items(c), syms)
+            # print(dumps_items(c), syms)
             for s in syms:
 
                 goto = self.clr_goto(c, s)
-                print(s, 'goto', dumps_items(goto))
+                # print(s, 'goto', dumps_items(goto))
                 # print(dumps_items(goto), goto in self.closcache)
                 if goto and goto not in self.closcache:
                     self.closcache[goto] = len(closure)
                     closure.append(goto)
-        for each in closure:
-            print(dumps_items(each))
-        print(len(closure))
+        # for each in closure:
+        #     print(dumps_items(each))
+        # print(len(closure))
         return closure
 
     def clr_table(self):
@@ -541,7 +541,7 @@ class CLRTable(LRTable):
                         # now we have a shift item
                         goto = self.clr_goto(state, s)
                         # get the index of goto in all states
-                        c = self.closcache.get(id(goto), -1)
+                        c = self.closcache.get(goto, -1)
                         if c >= 0:
                             actiondict[s] = c
                             actionprod[s] = item
@@ -555,7 +555,7 @@ class CLRTable(LRTable):
             for n in nontdict:
                 # do the same thing in shift
                 goto = self.clr_goto(state, n)
-                c = self.closcache.get(id(goto), -1)
+                c = self.closcache.get(goto, -1)
                 if c >= 0:
                     # but no more prod
                     gotodict[n] = c

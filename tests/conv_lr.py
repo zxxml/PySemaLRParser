@@ -66,7 +66,7 @@ if __name__ == '__main__':
     t = CLRTable(g)
     print(t.actiondict)
     print(t.gotodict)
-    # p = LRParser(t)
-    # s = ['dot', '1', '0', '1', '$end']
-    # s = [LRToken(each) for each in s]
-    # print(p.parse(s))
+    p = LRParser(t)
+    s = ['dot', '1', '0', '1', '$end']
+    s = [LRToken(each) for each in s]
+    print(p.parse(s))

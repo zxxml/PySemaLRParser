@@ -457,7 +457,9 @@ class CLRTable(LRTable):
                     item = deepcopy(a.lr_next)
                     syms = list(c.syms[c.lr_index + 2:])
                     first = self.grammar.get_first(syms)
-                    if first[0] == '<empty>': first = c.lr_aheads
+                    if '<empty>' in first:
+                        first.remove('<empty>')
+                        first.extend(c.lr_aheads)
                     item.lr_aheads = first
                     if item not in closure:
                         been_changed = True

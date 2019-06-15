@@ -29,7 +29,7 @@ class Production:
     @property
     def f(self):
         if self.func is not None: return self.func
-        return lambda x, y, z: print(x, y, z)
+        return lambda sym, args, stack: None
 
     @property
     def functions(self):
@@ -71,6 +71,10 @@ class Grammar:
     def __getitem__(self, i):
         return self.prodlist[i]
 
+    def __str__(self):
+        string = [str(x) for x in self.prodlist]
+        return '\n'.join(string)
+
     def add_prod(self, name, syms, func=None):
         if name in self.termdict:
             text = 'Illegal nonterm: %s'
@@ -107,6 +111,12 @@ class Grammar:
         self.prodlist[0] = Production(0, "S'", [start])
         self.nontdict[start].append(0)
         self.start = start
+        # compute first set
+        # and follow set btw
+        self.first_set()
+        self.follow_set()
+        # and all the LR items
+        self.build_lr_items()
 
     def get_first(self, syms):
         result = []
@@ -227,16 +237,12 @@ class LRItem:
         return '%s %s' % (prod, self.lr_aheads)
 
     def __hash__(self):
-        aheads = self.lr_aheads or []
-        a = list(self.syms) + list(aheads)
-        return hash(tuple(a))
+        a = self.lr_aheads or []
+        c = list(self.syms) + a
+        return hash(tuple(c))
 
     def __eq__(self, item):
-        a1 = self.lr_aheads or tuple()
-        a2 = item.lr_aheads or tuple()
-        a1 = tuple(a1)
-        a2 = tuple(a2)
-        return self.syms == item.syms and a1 == a2
+        return hash(self) == hash(item)
 
     @property
     def index(self):
@@ -267,6 +273,14 @@ class LRItem:
         # whether this item can be reduced
         # or acc if the name is the starter
         return len(self) == self.lr_index + 1
+
+    def copy(self, lr_aheads=None):
+        item = deepcopy(self)
+        if lr_aheads is not None:
+            # keep the lr_aheads when
+            # the lr_aheads not given
+            item.lr_aheads = lr_aheads
+        return item
 
 
 def dumps_items(items: Iterable[LRItem]):
@@ -303,7 +317,11 @@ class LRTable:
 
 
 class SLRTable(LRTable):
-    def lr0_closure(self, state):
+    def __init__(self, grammar):
+        super().__init__(grammar)
+        self.slr_table()
+
+    def slr_closure(self, state):
         self._add_count += 1
         # state_i means Ii
         # a set of lr items
@@ -319,7 +337,7 @@ class SLRTable(LRTable):
                         a._add_count = self._add_count
         return closure
 
-    def lr0_goto(self, state, x):
+    def slr_goto(self, state, x):
         # if there is goto cached, just return it
         goto = self.gotocache.get((id(state), x))
         if goto is not None: return goto
@@ -342,34 +360,36 @@ class SLRTable(LRTable):
                     gs.append(n)
         goto = s.get('$end')
         if goto is None:
-            if gs: goto = self.lr0_closure(gs)
+            if gs: goto = self.slr_closure(gs)
             s['$end'] = goto if gs else []
         self.gotocache[(id(state), x)] = goto
         return goto
 
-    def lr0_items(self):
-        closure = [self.lr0_closure([self.prodlist[0].lr_next])]
-        for i, c in enumerate(closure): self.closcache[id(c)] = i
+    def slr_items(self):
+        states = [self.slr_closure([self.prodlist[0].lr_next])]
+        for i, c in enumerate(states): self.closcache[id(c)] = i
         index = 0  # must use while
         # traverse all unvisited states
         # and generate their goto states
-        while index < len(closure):
-            c, index = closure[index], index + 1
+        while index < len(states):
+            c, index = states[index], index + 1
             # get all the symbols in every prods of c
             syms = unique_symbols(c, reverse=False)
             for s in syms:
-                goto = self.lr0_goto(c, s)
+                goto = self.slr_goto(c, s)
                 if goto and id(goto) not in self.closcache:
-                    self.closcache[id(goto)] = len(closure)
-                    closure.append(goto)
-        return closure
+                    self.closcache[id(goto)] = len(states)
+                    states.append(goto)
+        # for i, each in enumerate(states):
+        #     print('%d: %s' % (i, dumps_items(each)))
+        return states
 
     def slr_table(self):
-        for i, state in enumerate(self.lr0_items()):
+        for i, state in enumerate(self.slr_items()):
             # actiondict[s] = <index>
             # actionprod[s] = <prod>
             # for reduce or accept, <index> is pos
-            # for shift, <index> is negetive or zero
+            # for shift, <index> is negative or zero
             actiondict = {}
             actionprod = {}
             gotodict = {}
@@ -395,7 +415,7 @@ class SLRTable(LRTable):
                     s = item.syms[index + 1]
                     if s in self.grammar.termdict:
                         # now we have a shift item
-                        goto = self.lr0_goto(state, s)
+                        goto = self.slr_goto(state, s)
                         # get the index of goto in all states
                         c = self.closcache.get(id(goto), -1)
                         if c >= 0:
@@ -410,7 +430,7 @@ class SLRTable(LRTable):
                         nontdict[s] = None
             for n in nontdict:
                 # do the same thing in shift
-                goto = self.lr0_goto(state, n)
+                goto = self.slr_goto(state, n)
                 c = self.closcache.get(id(goto), -1)
                 if c >= 0:
                     # but no more prod
@@ -420,6 +440,10 @@ class SLRTable(LRTable):
 
 
 class CLRTable(LRTable):
+    def __init__(self, grammar):
+        super().__init__(grammar)
+        self.clr_table()
+
     def clr_closure(self, state: Iterable[LRItem]):
         self._add_count += 1
         closure = state[:]
@@ -427,93 +451,63 @@ class CLRTable(LRTable):
         while been_changed:
             been_changed = False
             for c in closure:
-                # print(5555, c, c.lr_after)
                 for a in c.lr_after:
-                    # if a._add_count != self._add_count:
-
                     # copy it since there is no
                     # lookaheads in origin items
                     item = deepcopy(a.lr_next)
-                    # a._add_count = self._add_count
                     syms = list(c.syms[c.lr_index + 2:])
                     first = self.grammar.get_first(syms)
                     if first[0] == '<empty>': first = c.lr_aheads
                     item.lr_aheads = first
-                    # print(4444, item, dumps_items(closure))
                     if item not in closure:
                         been_changed = True
                         closure.append(item)
         return tuple(closure)
 
     def clr_goto(self, state, x):
-        # print(x, '-' * 4)
         goto = self.gotocache.get((state, x))
         if goto is not None: return goto
         s, gs = self.gotocache[x], []
         for item in state:
-
             n = item.lr_next
-            # print(item, n)
             if n is not None:
-                # print(n.lr_before, x)
                 if n.lr_before == x:
                     n = deepcopy(n)
-                    # a = item.syms[item.lr_index + 2:]
-                    # first = self.grammar.get_first(a)
-                    # if first[0] == '<empty>': first = item.lr_aheads
-                    # n.lr_aheads = first
                     n.lr_aheads = item.lr_aheads
                     if n not in gs: gs.append(n)
-        # print(111, dumps_items(gs), goto, gs)
-        # if gs: print('gsgsgsgs')
-        # goto = s.get('$end')
-        # print(dumps_items(goto))
-        # print(goto)
-        # if not goto:
-        #
-        #     if gs:
-        #         goto = self.clr_closure(gs)
-        #         # print(222, goto, gs)
-        #     s['$end'] = goto if gs else []
         goto = self.clr_closure(gs)
-        self.gotocache[(id(state), x)] = goto
-        # print(dumps_items(goto))
+        self.gotocache[(state, x)] = goto
         return tuple(goto) if goto else None
 
     def clr_items(self):
-        item = deepcopy(self.prodlist[0].lr_next)
-        item.lr_aheads = ['$end']
-        closure = [self.clr_closure([item])]
-        # print(dumps_items(closure[0]))
-        # print(dumps_items(self.clr_goto(closure[0], 'S')))
-        # print(dumps_items(self.clr_goto(closure[0], 'dot')))
-        for i, c in enumerate(closure):
-            self.closcache[c] = i
-        index = 0
+        item = self.prodlist[0].lr_next  # no lookaheads now
+        closure = [self.clr_closure([item.copy(['$end'])])]
+        for i, c in enumerate(closure): self.closcache[c] = i
+        index = 0  # must use while
+        # traverse all unvisited states
+        # and generate their goto states
         while index < len(closure):
-            # print(len(closure))
             c, index = closure[index], index + 1
-            syms = unique_symbols(c)
-            # print(dumps_items(c), syms)
+            # get all the symbols in every prods of c
+            syms = unique_symbols(c, reverse=False)
             for s in syms:
-
                 goto = self.clr_goto(c, s)
-                # print(s, 'goto', dumps_items(goto))
-                # print(dumps_items(goto), goto in self.closcache)
                 if goto and goto not in self.closcache:
                     self.closcache[goto] = len(closure)
                     closure.append(goto)
-        # for each in closure:
-        #     print(dumps_items(each))
-        # print(len(closure))
+        # for i, each in enumerate(closure):
+        #     print('%d: %s' % (i, dumps_items(each)))
         return closure
 
     def clr_table(self):
+        # do almost the same things slr_table() does
+        # the differences: using hash instead of id
+        # and using lookaheads instead of follow set
         for i, state in enumerate(self.clr_items()):
             # actiondict[s] = <index>
             # actionprod[s] = <prod>
             # for reduce or accept, <index> is pos
-            # for shift, <index> is negetive or zero
+            # for shift, <index> is negative or zero
             actiondict = {}
             actionprod = {}
             gotodict = {}

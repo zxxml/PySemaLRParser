@@ -1,0 +1,25 @@
+<component name="ProjectDictionaryState">
+  <dictionary name="zxxml">
+    <words>
+      <w>actioncache</w>
+      <w>actiondict</w>
+      <w>actionprod</w>
+      <w>aheads</w>
+      <w>closcache</w>
+      <w>defaultfunc</w>
+      <w>gotocache</w>
+      <w>gotodict</w>
+      <w>lookaheads</w>
+      <w>namedict</w>
+      <w>nontdict</w>
+      <w>nonterm</w>
+      <w>proddict</w>
+      <w>prodlist</w>
+      <w>statestack</w>
+      <w>symbolstack</w>
+      <w>syms</w>
+      <w>termdict</w>
+      <w>termlist</w>
+    </words>
+  </dictionary>
+</component>

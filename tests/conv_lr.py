@@ -1,8 +1,6 @@
 #!/usr/bin/env/python3
 # -*- coding: utf-8 -*-
-from collections import defaultdict
-
-from pslrp import CLRTable, Grammar, LRParser, LRToken
+from pslrp import *
 
 termlist = ['dot', '0', '1']
 namedict = defaultdict()
@@ -49,27 +47,26 @@ def meet_p(sym, args, stack):
 
 if __name__ == '__main__':
     g = Grammar(termlist)
-    g.add_prod('S', ['dot', 'M', 'N'], root)
-    g.add_prod('N', ['N', 'P', 'B'], meet_nb)
-    g.add_prod('N', ['B'], meet_b)
-    g.add_prod('B', ['0'], meet_0)
-    g.add_prod('B', ['1'], meet_1)
-    g.add_prod('M', [], meet_m)
-    g.add_prod('P', [], meet_p)
-    for each in g.prodlist:
-        print(each)
+    # g.add_prod('S', ['dot', 'M', 'N'], root)
+    # g.add_prod('N', ['B', 'P', 'N'], meet_nb)
+    # g.add_prod('N', [], meet_b)
+    # g.add_prod('B', ['0'], meet_0)
+    # g.add_prod('B', ['1'], meet_1)
+    # g.add_prod('M', [], meet_m)
+    # g.add_prod('P', [], meet_p)
+    g.add_prod('S', ['dot', 'M', 'N'])
+    g.add_prod('N', ['B', 'P', 'N'])
+    g.add_prod('N', [])
+    g.add_prod('B', ['0'])
+    g.add_prod('B', ['1'])
+    g.add_prod('M', [])
+    g.add_prod('P', [])
     g.set_start()
-    g.first_set()
-    g.follow_set()
-    g.build_lr_items()
+    print(str(g))
     t = CLRTable(g)
-    # print(t.clr_items())
-    t.clr_table()
-    # print(t.actiondict)
-    # print( t.gotodict)
-    # t = SLRTable(g)
-    # t.slr_table()
-    p = LRParser(t)
-    s = ['dot', '1', '0', '1', '$end']
-    s = [LRToken(each) for each in s]
-    print(p.parse(s))
+    print(t.actiondict)
+    print(t.gotodict)
+    # p = LRParser(t)
+    # s = ['dot', '1', '0', '1', '$end']
+    # s = [LRToken(each) for each in s]
+    # print(p.parse(s))

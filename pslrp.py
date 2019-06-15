@@ -227,16 +227,16 @@ class LRItem:
         return '%s %s' % (prod, self.lr_aheads)
 
     def __hash__(self):
-        aheads=self.lr_aheads or []
-        a=list(self.syms)+list(aheads)
+        aheads = self.lr_aheads or []
+        a = list(self.syms) + list(aheads)
         return hash(tuple(a))
 
     def __eq__(self, item):
-        a1=self.lr_aheads or tuple()
-        a2=item.lr_aheads or tuple()
-        a1=tuple(a1)
-        a2=tuple(a2)
-        return self.syms == item.syms and a1==a2
+        a1 = self.lr_aheads or tuple()
+        a2 = item.lr_aheads or tuple()
+        a1 = tuple(a1)
+        a2 = tuple(a2)
+        return self.syms == item.syms and a1 == a2
 
     @property
     def index(self):
@@ -427,22 +427,22 @@ class CLRTable(LRTable):
         while been_changed:
             been_changed = False
             for c in closure:
-                print(5555,c,c.lr_after)
+                # print(5555, c, c.lr_after)
                 for a in c.lr_after:
                     # if a._add_count != self._add_count:
 
-                        # copy it since there is no
-                        # lookaheads in origin items
-                        item = deepcopy(a.lr_next)
-                        # a._add_count = self._add_count
-                        syms = list(c.syms[c.lr_index + 2:])
-                        first = self.grammar.get_first(syms)
-                        if first[0] == '<empty>': first = c.lr_aheads
-                        item.lr_aheads = first
-                        print(4444,item,dumps_items(closure))
-                        if item not in closure:
-                            been_changed = True
-                            closure.append(item)
+                    # copy it since there is no
+                    # lookaheads in origin items
+                    item = deepcopy(a.lr_next)
+                    # a._add_count = self._add_count
+                    syms = list(c.syms[c.lr_index + 2:])
+                    first = self.grammar.get_first(syms)
+                    if first[0] == '<empty>': first = c.lr_aheads
+                    item.lr_aheads = first
+                    # print(4444, item, dumps_items(closure))
+                    if item not in closure:
+                        been_changed = True
+                        closure.append(item)
         return tuple(closure)
 
     def clr_goto(self, state, x):
@@ -458,21 +458,24 @@ class CLRTable(LRTable):
                 print(n.lr_before, x)
                 if n.lr_before == x:
                     n = deepcopy(n)
-                    a = item.syms[item.lr_index + 2:]
-                    first = self.grammar.get_first(a)
-                    if first[0] == '<empty>': first = item.lr_aheads
-                    n.lr_aheads = first
+                    # a = item.syms[item.lr_index + 2:]
+                    # first = self.grammar.get_first(a)
+                    # if first[0] == '<empty>': first = item.lr_aheads
+                    # n.lr_aheads = first
+                    n.lr_aheads = item.lr_aheads
                     if n not in gs: gs.append(n)
-        print(111, dumps_items(gs),goto,gs)
-        if gs:print('gsgsgsgs')
-        goto = s.get('$end')
-        print(goto)
-        if not goto:
-
-            if gs:
-                goto = self.clr_closure(gs)
-                print(222, goto,gs)
-            s['$end'] = goto if gs else []
+        print(111, dumps_items(gs), goto, gs)
+        # if gs: print('gsgsgsgs')
+        # goto = s.get('$end')
+        # print(dumps_items(goto))
+        # print(goto)
+        # if not goto:
+        #
+        #     if gs:
+        #         goto = self.clr_closure(gs)
+        #         # print(222, goto, gs)
+        #     s['$end'] = goto if gs else []
+        goto = self.clr_closure(gs)
         self.gotocache[(id(state), x)] = goto
         print(dumps_items(goto))
         return tuple(goto) if goto else None
@@ -488,6 +491,7 @@ class CLRTable(LRTable):
             self.closcache[c] = i
         index = 0
         while index < len(closure):
+            print(len(closure))
             c, index = closure[index], index + 1
             syms = unique_symbols(c)
             print(dumps_items(c), syms)
@@ -503,6 +507,60 @@ class CLRTable(LRTable):
             print(dumps_items(each))
         print(len(closure))
         return closure
+
+    def clr_table(self):
+        for i, state in enumerate(self.clr_items()):
+            # actiondict[s] = <index>
+            # actionprod[s] = <prod>
+            # for reduce or accept, <index> is pos
+            # for shift, <index> is negetive or zero
+            actiondict = {}
+            actionprod = {}
+            gotodict = {}
+            # generate the action table
+            # ignore goto in this loop
+            for item in state:
+                if item.can_reduce:
+                    if item.name == "S'":
+                        actiondict['$end'] = 0
+                        actionprod['$end'] = item
+                    else:
+                        # the lookaheads of slr is the follow
+                        for a in item.lr_aheads:
+                            if actiondict.get(a) is not None:
+                                message = 'Conflict reduce and %s.'
+                                raise GramError(message % 'shift')
+                            # reverse index(-1, -2, ...)
+                            actiondict[a] = -item.index
+                            actionprod[a] = item
+                else:
+                    index = item.lr_index
+                    # e.g. S -> a.Sb, s = S
+                    s = item.syms[index + 1]
+                    if s in self.grammar.termdict:
+                        # now we have a shift item
+                        goto = self.clr_goto(state, s)
+                        # get the index of goto in all states
+                        c = self.closcache.get(id(goto), -1)
+                        if c >= 0:
+                            actiondict[s] = c
+                            actionprod[s] = item
+            # already finished the action
+            # now generate the goto table
+            nontdict = defaultdict()
+            for item in state:
+                for s in item.uni_syms:
+                    if s in self.grammar.nontdict:
+                        nontdict[s] = None
+            for n in nontdict:
+                # do the same thing in shift
+                goto = self.clr_goto(state, n)
+                c = self.closcache.get(id(goto), -1)
+                if c >= 0:
+                    # but no more prod
+                    gotodict[n] = c
+            self.actiondict[i] = actiondict
+            self.gotodict[i] = gotodict
 
 
 class LRToken:

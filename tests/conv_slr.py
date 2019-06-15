@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 from collections import defaultdict
 
-from pslrp import CLRTable, Grammar
+from pslrp import CLRTable, Grammar, LRParser, LRToken
 
 termlist = ['dot', '0', '1']
 namedict = defaultdict()
@@ -56,12 +56,16 @@ if __name__ == '__main__':
     g.add_prod('B', ['1'], meet_1)
     g.add_prod('M', [], meet_m)
     g.add_prod('P', [], meet_p)
+    for each in g.prodlist:
+        print(each)
     g.set_start()
     g.first_set()
     g.follow_set()
     g.build_lr_items()
     t = CLRTable(g)
     print(t.clr_items())
+    # print(t.clr_table())
+    # print(t.actiondict, t.gotodict)
     # t = SLRTable(g)
     # t.slr_table()
     # p = LRParser(t)

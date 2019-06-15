@@ -565,7 +565,16 @@ class LRToken:
         self.value = value
 
     def __str__(self):
-        return self.name
+        args = self.name, self.value
+        return '{}({})'.format(*args)
+
+    def copy(self, name=None):
+        item = deepcopy(self)
+        if name is not None:
+            # keep the lr_aheads when
+            # the given name is None
+            item.name = name
+        return item
 
 
 class LRParser:
@@ -619,22 +628,17 @@ class LRParser:
                         del statestack[-len(p):]
                         # doing actions while reducing
                         p.f(symbol, args, symbolstack)
-                        symbolstack.append(symbol)
-                        # after applying the rule
-                        # generate the next state
-                        r_state = statestack[-1]
-                        r_goto = gotodict[r_state]
-                        next_state = r_goto[p.name]
-                        statestack.append(next_state)
                     else:
+                        # doing actions while reducing
                         p.f(symbol, None, symbolstack)
-                        symbolstack.append(symbol)
-                        # after applying the rule
-                        # generate the next state
-                        r_state = statestack[-1]
-                        r_goto = gotodict[r_state]
-                        next_state = r_goto[p.name]
-                        statestack.append(next_state)
+                    symbol = symbol.copy(p.name)
+                    symbolstack.append(symbol)
+                    # after applying the rule
+                    # generate the next state
+                    r_state = statestack[-1]
+                    r_goto = gotodict[r_state]
+                    next_state = r_goto[p.name]
+                    statestack.append(next_state)
                 # for readability
                 elif next == 0:
                     symbol = symbolstack[-1]

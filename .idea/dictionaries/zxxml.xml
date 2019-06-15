@@ -7,10 +7,12 @@
       <w>aheads</w>
       <w>closcache</w>
       <w>defaultfunc</w>
+      <w>funcdict</w>
       <w>gotocache</w>
       <w>gotodict</w>
       <w>lookaheads</w>
       <w>namedict</w>
+      <w>nont</w>
       <w>nontdict</w>
       <w>nonterm</w>
       <w>proddict</w>

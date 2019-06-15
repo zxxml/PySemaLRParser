@@ -64,8 +64,7 @@ if __name__ == '__main__':
     g.add_prod('B', ['0'], [empty_func, meet_b_0_1])
     g.add_prod('B', ['1'], [empty_func, meet_b_1_1])
     g.set_start()
-    g.first_set()
-    g.follow_set()
+    print(str(g))
     p = LLParser(g)
     s = ['dot', '1', '0', '1', '$end']
     s = [LRToken(each) for each in s]

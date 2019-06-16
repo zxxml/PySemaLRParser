@@ -621,6 +621,7 @@ class LRParser:
                     symbolstack.append(next_sym)
                 elif next < 0:
                     p = prodlist[-next]
+                    symbol = symbol.copy(p.name)
                     if len(p):
                         args = symbolstack[-len(p):]
                         # doing reduce from now
@@ -631,7 +632,6 @@ class LRParser:
                     else:
                         # doing actions while reducing
                         p.f(symbol, None, symbolstack)
-                    symbol = symbol.copy(p.name)
                     symbolstack.append(symbol)
                     # after applying the rule
                     # generate the next state

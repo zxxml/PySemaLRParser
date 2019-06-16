@@ -35,8 +35,8 @@ class Production:
     def functions(self):
         # used by the LL(1) parser
         if self.func: return self.func
-        defaultfunc = lambda: lambda: None
-        return defaultdict(defaultfunc)
+        func = lambda: lambda x, y: None
+        return defaultdict(func)
 
 
 class GramError(Exception):
